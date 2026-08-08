@@ -480,8 +480,8 @@
         <div class="end-sub">با عشق بی‌پایان</div>
     </div>
 
-    <!-- Audio -->
-    <audio id="bg-music" loop preload="auto">
+    <!-- Audio (NO preload - mobile blocks it before user gesture) -->
+    <audio id="bg-music" loop preload="none">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
 
@@ -602,22 +602,70 @@
         }
 
         // ===== Start Music on Touch =====
+        let touchHandled = false;
+
         function handleTouchStart(e) {
+            if (touchHandled) return;
+            touchHandled = true;
             e.preventDefault();
-            touchOverlay.classList.remove('visible');
 
-            bgMusic.play().then(() => {
-                console.log('Music started');
-            }).catch(err => {
-                console.warn('Audio failed:', err);
-            });
+            // Update overlay to show music loading
+            const tText = touchOverlay.querySelector('.touch-text');
+            const tHint = touchOverlay.querySelector('.touch-hint');
+            const tIcon = touchOverlay.querySelector('.touch-icon');
+            if (tText) tText.innerHTML = 'در حال بارگذاری آهنگ...';
+            if (tHint) tHint.style.display = 'none';
+            if (tIcon) tIcon.textContent = '\u{1F3B5}';
 
-            // Start advancing photos
-            startSlideshow();
+            // CRITICAL: On mobile, audio MUST be loaded INSIDE user gesture
+            bgMusic.load();
+
+            function tryPlay() {
+                bgMusic.play().then(() => {
+                    touchOverlay.classList.remove('visible');
+                    startSlideshow();
+                }).catch(err => {
+                    console.warn('Play failed, retrying...', err);
+                    setTimeout(() => {
+                        bgMusic.play().then(() => {
+                            touchOverlay.classList.remove('visible');
+                            startSlideshow();
+                        }).catch(() => {
+                            touchOverlay.classList.remove('visible');
+                            startSlideshow();
+                        });
+                    }, 500);
+                });
+            }
+
+            if (bgMusic.readyState >= 2) {
+                tryPlay();
+            } else {
+                const onReady = () => {
+                    bgMusic.removeEventListener('canplay', onReady);
+                    bgMusic.removeEventListener('error', onErr);
+                    clearTimeout(fallback);
+                    tryPlay();
+                };
+                const onErr = () => {
+                    bgMusic.removeEventListener('canplay', onReady);
+                    bgMusic.removeEventListener('error', onErr);
+                    clearTimeout(fallback);
+                    touchOverlay.classList.remove('visible');
+                    startSlideshow();
+                };
+                bgMusic.addEventListener('canplay', onReady);
+                bgMusic.addEventListener('error', onErr);
+                const fallback = setTimeout(() => {
+                    bgMusic.removeEventListener('canplay', onReady);
+                    bgMusic.removeEventListener('error', onErr);
+                    tryPlay();
+                }, 8000);
+            }
         }
 
-        touchOverlay.addEventListener('touchstart', handleTouchStart, { once: true });
-        touchOverlay.addEventListener('click', handleTouchStart, { once: true });
+        touchOverlay.addEventListener('touchstart', handleTouchStart, { passive: false });
+        touchOverlay.addEventListener('click', handleTouchStart);
 
         // ===== Slideshow Logic =====
         function getPhotoDuration() {
@@ -690,12 +738,13 @@
 
         // ===== Init =====
         async function init() {
-            bgMusic.load();
+            // Do NOT call bgMusic.load() here!
+            // Mobile browsers block audio loading without user gesture.
+            // Audio will be loaded when user touches the screen.
+
             await preloadImages();
 
-            // If for some reason first photo was never shown
             if (!firstPhotoShown) {
-                // Find first available photo
                 const firstAvailable = photoCache.findIndex(p => p !== null);
                 if (firstAvailable >= 0) {
                     showSlideshowWithFirstPhoto();
