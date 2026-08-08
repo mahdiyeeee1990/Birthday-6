@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#4a1a6b">
+    <title>🎂 تولدت مبارک کلوینو</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+            position: fixed;
+            inset: 0;
+        }
+
+        /* ===== Loading Screen ===== */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4a1a6b 0%, #6b2fa0 30%, #d4541e 70%, #f2994a 100%);
+            transition: opacity 0.6s ease;
+            padding: 20px;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-title {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .loading-bar-container {
+            width: 220px;
+            height: 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f2994a, #fff, #f2994a);
+            background-size: 200% 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .loading-percent {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            margin-top: 12px;
+            direction: ltr;
+        }
+
+        .loading-status {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.7rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* ===== Main Slideshow Container ===== */
+        #slideshow {
+            position: fixed;
+            inset: 0;
+            display: none;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #slideshow.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Background gradient */
+        .bg-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #4a1a6b 0%, #6b2fa0 25%, #d4541e 75%, #f2994a 100%);
+            z-index: 0;
+        }
+
+        /* ===== Floating Hearts ===== */
+        .hearts-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-heart {
+            position: absolute;
+            bottom: -40px;
+            opacity: 0;
+            animation: floatHeart linear infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+            8% {
+                opacity: 0.7;
+                transform: translateY(-8vh) translateX(10px) rotate(15deg) scale(0.8);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-50vh) translateX(-15px) rotate(-10deg) scale(1);
+            }
+            85% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-110vh) translateX(20px) rotate(25deg) scale(0.7);
+                opacity: 0;
+            }
+        }
+
+        /* ===== Top Bar (progress + counter) ===== */
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            flex-shrink: 0;
+            padding: env(safe-area-inset-top, 8px) 12px 6px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f2994a, #d4541e, #f2994a);
+            transition: width 0.5s linear;
+        }
+
+        .photo-counter {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.65rem;
+            direction: ltr;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== Photo Area (fills remaining space) ===== */
+        .photo-area {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            min-height: 0;
+        }
+
+        .photo-frame {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow:
+                0 6px 24px rgba(0,0,0,0.5),
+                0 0 40px rgba(212, 84, 30, 0.15),
+                0 0 40px rgba(106, 47, 160, 0.15);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            line-height: 0;
+        }
+
+        .photo-frame img {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 88vw;
+            max-height: 100%;
+            object-fit: contain;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        /* ===== Bottom Message Bar ===== */
+        .bottom-bar {
+            position: relative;
+            z-index: 10;
+            flex-shrink: 0;
+            padding: 10px 10px calc(env(safe-area-inset-bottom, 8px) + 12px);
+            background: linear-gradient(to top, rgba(74, 26, 107, 0.97) 0%, rgba(74, 26, 107, 0.85) 50%, rgba(74, 26, 107, 0.4) 85%, transparent 100%);
+            text-align: center;
+        }
+
+        .birthday-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .heart-icon {
+            font-size: 0.85rem;
+            animation: pulseHeart 1.8s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .heart-icon.orange { color: #f2994a; }
+        .heart-icon.purple { color: #c084fc; }
+
+        .heart-icon:nth-child(1) { animation-delay: 0s; }
+        .heart-icon:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes pulseHeart {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+        }
+
+        .birthday-title {
+            background: linear-gradient(135deg, #f2994a, #e8a0f0, #c084fc, #f2994a);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 0.95rem;
+            font-weight: 700;
+            animation: gradientShift 4s ease infinite;
+            text-shadow: none;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .love-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.72rem;
+            line-height: 1.6;
+            padding: 0 8px;
+        }
+
+        .love-message .heart-icon {
+            font-size: 0.65rem;
+        }
+
+        .love-text {
+            background: linear-gradient(90deg, #f2994a, #e8a0f0, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== Touch Overlay (for starting music) ===== */
+        #touch-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(74, 26, 107, 0.55);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            animation: overlayFadeIn 0.5s ease forwards;
+        }
+
+        #touch-overlay.visible {
+            display: flex;
+        }
+
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .touch-icon {
+            font-size: 2.8rem;
+            animation: pulseHeart 1.5s ease-in-out infinite;
+            margin-bottom: 14px;
+        }
+
+        .touch-text {
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            line-height: 1.8;
+            padding: 0 30px;
+        }
+
+        .touch-hint {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.75rem;
+            margin-top: 24px;
+            animation: blinkHint 2s ease-in-out infinite;
+        }
+
+        @keyframes blinkHint {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== End Screen ===== */
+        #end-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 800;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4a1a6b 0%, #6b2fa0 30%, #d4541e 70%, #f2994a 100%);
+            opacity: 0;
+            transition: opacity 1.2s ease;
+            padding: 30px;
+        }
+
+        #end-screen.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .end-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 18px;
+            animation: pulseHeart 2s ease-in-out infinite;
+        }
+
+        .end-message {
+            color: #fff;
+            font-size: 1.2rem;
+            text-align: center;
+            line-height: 2;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.3);
+        }
+
+        .end-sub {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.9rem;
+            margin-top: 14px;
+        }
+
+        /* ===== Responsive Tweaks ===== */
+        @media (max-height: 600px) {
+            .bottom-bar { padding: 6px 8px calc(env(safe-area-inset-bottom, 6px) + 8px); }
+            .birthday-title { font-size: 0.82rem; }
+            .love-message { font-size: 0.65rem; }
+            .heart-icon { font-size: 0.75rem; }
+            .photo-area { padding: 4px 10px; }
+        }
+
+        @media (min-height: 800px) {
+            .birthday-title { font-size: 1.1rem; }
+            .love-message { font-size: 0.8rem; }
+            .heart-icon { font-size: 1rem; }
+            .bottom-bar { padding: 14px 14px calc(env(safe-area-inset-bottom, 10px) + 16px); }
+        }
+
+        /* Landscape phone */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .bottom-bar {
+                padding: 4px 12px calc(env(safe-area-inset-bottom, 4px) + 6px);
+                background: linear-gradient(to top, rgba(74, 26, 107, 0.9) 0%, transparent 100%);
+            }
+            .birthday-title { font-size: 0.75rem; }
+            .love-message { font-size: 0.6rem; }
+            .heart-icon { font-size: 0.65rem; }
+            .photo-area { padding: 2px 16px; }
+            .top-bar { padding: env(safe-area-inset-top, 4px) 12px 3px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-title">در حال آماده‌سازی سورپرایز...</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="loading-percent" id="loading-percent">0%</div>
+        <div class="loading-status" id="loading-status"></div>
+    </div>
+
+    <!-- Main Slideshow -->
+    <div id="slideshow">
+        <div class="bg-gradient"></div>
+
+        <!-- Floating hearts -->
+        <div class="hearts-container" id="hearts-container"></div>
+
+        <!-- Top bar: progress + counter -->
+        <div class="top-bar">
+            <div class="progress-container">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="photo-counter" id="photo-counter">1 / 36</div>
+        </div>
+
+        <!-- Photo area -->
+        <div class="photo-area">
+            <div class="photo-frame" id="photo-frame">
+                <img id="current-photo" src="" alt="">
+            </div>
+        </div>
+
+        <!-- Bottom message -->
+        <div class="bottom-bar">
+            <div class="birthday-line">
+                <span class="heart-icon orange">♥</span>
+                <span class="birthday-title">تولدت مبارک کلوینو</span>
+                <span class="heart-icon purple">♥</span>
+            </div>
+            <div class="love-message">
+                <span class="heart-icon purple">♥</span>
+                <span class="love-text">عشق تو ستاره‌ایه که تاریکی‌ها رو روشن می‌کنه</span>
+                <span class="heart-icon orange">♥</span>
+            </div>
+        </div>
+
+        <!-- Touch overlay (shown over first photo to start music) -->
+        <div id="touch-overlay">
+            <div class="touch-icon">💜</div>
+            <div class="touch-text">کلوینو<br>یه سورپرایز خاص برات دارم</div>
+            <div class="touch-hint">صفحه رو لمس کن...</div>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen">
+        <div class="end-emoji">🎂💜</div>
+        <div class="end-message">
+            تولدت مبارک کلوینو<br>
+            بهترین‌ها از خدا برات آرزومندم 💜
+        </div>
+        <div class="end-sub">با عشق بی‌پایان</div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // ===== Configuration =====
+        const TOTAL_PHOTOS = 36;
+        const PHOTO_DIR = 'photos/';
+        const PHOTO_EXT = '.jpg';
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 2000;
+
+        // ===== DOM =====
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingBar = document.getElementById('loading-bar');
+        const loadingPercent = document.getElementById('loading-percent');
+        const loadingStatus = document.getElementById('loading-status');
+        const slideshow = document.getElementById('slideshow');
+        const touchOverlay = document.getElementById('touch-overlay');
+        const endScreen = document.getElementById('end-screen');
+        const currentPhotoEl = document.getElementById('current-photo');
+        const progressFill = document.getElementById('progress-fill');
+        const photoCounter = document.getElementById('photo-counter');
+        const bgMusic = document.getElementById('bg-music');
+        const heartsContainer = document.getElementById('hearts-container');
+
+        // ===== State =====
+        let photoCache = new Array(TOTAL_PHOTOS).fill(null);
+        let currentIndex = 0;
+        let slideshowTimer = null;
+        let isRunning = false;
+        let firstPhotoShown = false;
+
+        // ===== Floating Hearts =====
+        function createHearts() {
+            const heartChars = ['♥', '♡', '❤', '💜', '🧡'];
+            const colors = ['#f2994a', '#d4541e', '#c084fc', '#e8a0f0', '#fff', '#f2994a'];
+            for (let i = 0; i < 25; i++) {
+                const h = document.createElement('div');
+                h.className = 'floating-heart';
+                h.textContent = heartChars[Math.floor(Math.random() * heartChars.length)];
+                const size = Math.random() * 16 + 10;
+                h.style.fontSize = size + 'px';
+                h.style.left = (Math.random() * 95 + 2) + '%';
+                h.style.color = colors[Math.floor(Math.random() * colors.length)];
+                h.style.animationDuration = (Math.random() * 8 + 7) + 's';
+                h.style.animationDelay = (Math.random() * 12) + 's';
+                h.style.opacity = '0';
+                heartsContainer.appendChild(h);
+            }
+        }
+        createHearts();
+
+        // ===== Image Loading with Retry =====
+        function loadSingleImage(index) {
+            return new Promise((resolve) => {
+                const src = PHOTO_DIR + 'photo' + (index + 1) + PHOTO_EXT;
+                let attempts = 0;
+
+                function tryLoad() {
+                    const img = new Image();
+                    img.onload = () => {
+                        photoCache[index] = src;
+                        resolve(true);
+                    };
+                    img.onerror = () => {
+                        attempts++;
+                        if (attempts < MAX_RETRIES) {
+                            loadingStatus.textContent = 'تلاش مجدد برای تصویر ' + (index + 1) + '...';
+                            setTimeout(tryLoad, RETRY_DELAY);
+                        } else {
+                            photoCache[index] = null;
+                            resolve(false);
+                        }
+                    };
+                    img.src = src + (attempts > 0 ? '?t=' + Date.now() : '');
+                }
+                tryLoad();
+            });
+        }
+
+        async function preloadImages() {
+            let loaded = 0;
+            for (let i = 0; i < TOTAL_PHOTOS; i++) {
+                loadingStatus.textContent = 'بارگذاری تصویر ' + (i + 1) + ' از ' + TOTAL_PHOTOS;
+                const success = await loadSingleImage(i);
+                loaded++;
+                const pct = Math.round((loaded / TOTAL_PHOTOS) * 100);
+                loadingBar.style.width = pct + '%';
+                loadingPercent.textContent = pct + '%';
+
+                // Show first photo as soon as it's loaded
+                if (!firstPhotoShown && photoCache[0]) {
+                    showSlideshowWithFirstPhoto();
+                    firstPhotoShown = true;
+                }
+            }
+            loadingStatus.textContent = '';
+        }
+
+        // ===== Show Slideshow with First Photo (no touch needed) =====
+        function showSlideshowWithFirstPhoto() {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 600);
+
+            slideshow.classList.add('active');
+            currentPhotoEl.src = photoCache[0];
+            currentPhotoEl.style.opacity = '1';
+            currentPhotoEl.style.transform = 'scale(1)';
+            photoCounter.textContent = '1 / ' + TOTAL_PHOTOS;
+            progressFill.style.width = (1 / TOTAL_PHOTOS * 100) + '%';
+
+            // Show touch overlay for music
+            setTimeout(() => {
+                touchOverlay.classList.add('visible');
+            }, 400);
+        }
+
+        // ===== Start Music on Touch =====
+        function handleTouchStart(e) {
+            e.preventDefault();
+            touchOverlay.classList.remove('visible');
+
+            bgMusic.play().then(() => {
+                console.log('Music started');
+            }).catch(err => {
+                console.warn('Audio failed:', err);
+            });
+
+            // Start advancing photos
+            startSlideshow();
+        }
+
+        touchOverlay.addEventListener('touchstart', handleTouchStart, { once: true });
+        touchOverlay.addEventListener('click', handleTouchStart, { once: true });
+
+        // ===== Slideshow Logic =====
+        function getPhotoDuration() {
+            if (bgMusic.duration && isFinite(bgMusic.duration) && bgMusic.duration > 0) {
+                return (bgMusic.duration * 1000) / TOTAL_PHOTOS;
+            }
+            return (287 * 1000) / TOTAL_PHOTOS; // fallback: 4:47
+        }
+
+        function showPhoto(index) {
+            if (index >= TOTAL_PHOTOS) {
+                endSlideshow();
+                return;
+            }
+            currentIndex = index;
+            const src = photoCache[index];
+
+            if (!src) {
+                // Retry one more time for missing photos during slideshow
+                const img = new Image();
+                img.onload = () => {
+                    photoCache[index] = img.src;
+                    showPhoto(index);
+                };
+                img.onerror = () => {
+                    showPhoto(index + 1); // skip
+                };
+                img.src = PHOTO_DIR + 'photo' + (index + 1) + PHOTO_EXT + '?retry=' + Date.now();
+                return;
+            }
+
+            // Fade out then in
+            currentPhotoEl.style.opacity = '0';
+            currentPhotoEl.style.transform = 'scale(1.03)';
+
+            setTimeout(() => {
+                currentPhotoEl.src = src;
+                currentPhotoEl.style.opacity = '1';
+                currentPhotoEl.style.transform = 'scale(1)';
+            }, 350);
+
+            photoCounter.textContent = (index + 1) + ' / ' + TOTAL_PHOTOS;
+            progressFill.style.width = ((index + 1) / TOTAL_PHOTOS * 100) + '%';
+        }
+
+        function startSlideshow() {
+            if (isRunning) return;
+            isRunning = true;
+
+            // Get audio duration - wait a bit for metadata
+            setTimeout(() => {
+                const duration = getPhotoDuration();
+                // Start from photo 1 (index 1) since 0 is already showing
+                slideshowTimer = setInterval(() => {
+                    showPhoto(currentIndex + 1);
+                }, duration);
+            }, 300);
+        }
+
+        function endSlideshow() {
+            isRunning = false;
+            clearInterval(slideshowTimer);
+            bgMusic.pause();
+
+            setTimeout(() => {
+                slideshow.classList.remove('active');
+                endScreen.classList.add('visible');
+            }, 1200);
+        }
+
+        // ===== Init =====
+        async function init() {
+            bgMusic.load();
+            await preloadImages();
+
+            // If for some reason first photo was never shown
+            if (!firstPhotoShown) {
+                // Find first available photo
+                const firstAvailable = photoCache.findIndex(p => p !== null);
+                if (firstAvailable >= 0) {
+                    showSlideshowWithFirstPhoto();
+                }
+            }
+        }
+
+        init();
+
+        // Audio loop safety
+        bgMusic.addEventListener('ended', () => {
+            bgMusic.currentTime = 0;
+            bgMusic.play().catch(() => {});
+        });
+    </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+</body>
+</html>
